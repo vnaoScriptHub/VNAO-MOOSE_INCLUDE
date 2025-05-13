@@ -1,0 +1,39 @@
+name: sync-develop
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'  # Runs daily at midnight UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-develop:
+    name: Sync develop branch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Fork
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          token: ${{ secrets.PAT_TOKEN }}
+          fetch-depth: 0     # Ensure full history
+          clean: true        # Clean workspace before checkout
+
+      - name: Add Upstream Remote
+        run: git remote add upstream https://github.com/FlightControl-Master/MOOSE_INCLUDE.git
+
+      - name: Fetch Upstream
+        run: git fetch upstream
+
+      - name: Set Git Identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge and Push develop
+        run: |
+          git checkout develop
+          git merge upstream/develop --allow-unrelated-histories
+          git push origin develop
