@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2025-05-15T13:20:07+02:00-0ea56319559de11add6b9ecd98dabaa695e79585 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2025-05-16T13:43:27+02:00-fa676cc75061ec8470be2ab600c48635fc3fd969 ***')
 if not MOOSE_DEVELOPMENT_FOLDER then
 MOOSE_DEVELOPMENT_FOLDER='Scripts'
 end
@@ -11133,6 +11133,7 @@ end
 return self.CLIENTS[DCSUnitName]
 end
 function DATABASE:FindGroup(GroupName)
+if type(GroupName)~="string"or GroupName==""then return end
 local GroupFound=self.GROUPS[GroupName]
 if GroupFound==nil and GroupName~=nil and self.Templates.Groups[GroupName]==nil then
 self:_RegisterDynamicGroup(GroupName)
@@ -29972,6 +29973,7 @@ AIRBASE.Syria={
 ["Hatzor"]="Hatzor",
 ["Palmashim"]="Palmashim",
 ["Tel_Nof"]="Tel Nof",
+["Marka"]="Marka",
 }
 AIRBASE.MarianaIslands={
 ["Andersen_AFB"]="Andersen AFB",
@@ -54233,6 +54235,7 @@ SmokeDecoy=false,
 SmokeDecoyColor=SMOKECOLOR.White,
 checkcounter=1,
 DLinkCacheTime=120,
+logsamstatus=false,
 }
 MANTIS.AdvancedState={
 GREEN=0,
@@ -54439,6 +54442,7 @@ end
 if self.advAwacs then
 table.insert(self.ewr_templates,awacs)
 end
+self.logsamstatus=false
 self:T({self.ewr_templates})
 self.SAM_Group=SET_GROUP:New():FilterPrefixes(self.SAM_Templates_Prefix):FilterCoalitions(self.Coalition)
 self.EWR_Group=SET_GROUP:New():FilterPrefixes(self.ewr_templates):FilterCoalitions(self.Coalition)
@@ -54456,7 +54460,7 @@ if self.HQ_Template_CC then
 self.HQ_CC=GROUP:FindByName(self.HQ_Template_CC)
 end
 self.checkcounter=1
-self.version="0.9.29"
+self.version="0.9.30"
 self:I(string.format("***** Starting MANTIS Version %s *****",self.version))
 self:SetStartState("Stopped")
 self:AddTransition("Stopped","Start","Running")
@@ -55079,7 +55083,7 @@ if group:IsGround()and group:IsAlive()then
 local grpname=group:GetName()
 local grpcoord=group:GetCoordinate()
 local grprange,grpheight,type,blind=self:_GetSAMRange(grpname)
-local radaralive=group:IsSAM()
+local radaralive=true
 table.insert(SAM_Tbl,{grpname,grpcoord,grprange,grpheight,blind,type})
 table.insert(SEAD_Grps,grpname)
 if type==MANTIS.SamType.LONG and radaralive then
@@ -55209,7 +55213,7 @@ end
 end
 end
 end
-if self.debug or self.verbose then
+if self.debug or self.verbose or self.logsamstatus then
 for _,_status in pairs(self.SamStateTracker)do
 if _status=="GREEN"then
 instatusgreen=instatusgreen+1
@@ -55225,7 +55229,7 @@ end
 end
 return instatusred,instatusgreen,activeshorads
 end
-function MANTIS:_Check(detection,dlink)
+function MANTIS:_Check(detection,dlink,reporttolog)
 self:T(self.lid.."Check")
 local detset=detection:GetDetectedItemCoordinates()
 if self.checkcounter%3==0 then
@@ -55248,7 +55252,7 @@ else
 local samset=self:_GetSAMTable()
 instatusred,instatusgreen,activeshorads=self:_CheckLoop(samset,detset,dlink,self.maxclassic)
 end
-if self.debug or self.verbose then
+local function GetReport()
 local statusreport=REPORT:New("\nMANTIS Status "..self.name)
 statusreport:Add("+-----------------------------+")
 statusreport:Add(string.format("+ SAM in RED State: %2d",instatusred))
@@ -55257,7 +55261,14 @@ if self.Shorad then
 statusreport:Add(string.format("+ SHORAD active: %2d",activeshorads))
 end
 statusreport:Add("+-----------------------------+")
+return statusreport
+end
+if self.debug or self.verbose then
+local statusreport=GetReport()
 MESSAGE:New(statusreport:Text(),10):ToAll():ToLog()
+elseif reporttolog==true then
+local statusreport=GetReport()
+MESSAGE:New(statusreport:Text(),10):ToLog()
 end
 return self
 end
@@ -55328,7 +55339,7 @@ end
 function MANTIS:onbeforeStatus(From,Event,To)
 self:T({From,Event,To})
 if not self.state2flag then
-self:_Check(self.Detection,self.DLink)
+self:_Check(self.Detection,self.DLink,self.logsamstatus)
 end
 local EWRAlive=self:_CheckAnyEWRAlive()
 local function FindSAMSRTR()
@@ -113966,9 +113977,10 @@ CapFormation=nil,
 ReadyFlightGroups={},
 DespawnAfterLanding=false,
 DespawnAfterHolding=true,
-ListOfAuftrag={}
+ListOfAuftrag={},
+defaulttakeofftype="hot",
 }
-EASYGCICAP.version="0.1.20"
+EASYGCICAP.version="0.1.21"
 function EASYGCICAP:New(Alias,AirbaseName,Coalition,EWRName)
 local self=BASE:Inherit(self,FSM:New())
 self.alias=Alias or AirbaseName.." CAP Wing"
@@ -113999,6 +114011,7 @@ self.CapFormation=ENUMS.Formation.FixedWing.FingerFour.Group
 self.DespawnAfterLanding=false
 self.DespawnAfterHolding=true
 self.ListOfAuftrag={}
+self.defaulttakeofftype="hot"
 self.lid=string.format("EASYGCICAP %s | ",self.alias)
 self:SetStartState("Stopped")
 self:AddTransition("Stopped","Start","Running")
@@ -114042,6 +114055,11 @@ end
 function EASYGCICAP:SetDefaultRepeatOnFailure(Retries)
 self:T(self.lid.."SetDefaultRepeatOnFailure")
 self.repeatsonfailure=Retries or 3
+return self
+end
+function EASYGCICAP:SetDefaultTakeOffType(Takeoff)
+self:T(self.lid.."SetDefaultTakeOffType")
+self.defaulttakeofftype=Takeoff or"hot"
 return self
 end
 function EASYGCICAP:SetDefaultCAPSpeed(Speed)
@@ -114153,7 +114171,7 @@ end
 if#self.ManagedREC>0 then
 CAP_Wing:SetNumberRecon(1)
 end
-CAP_Wing:SetTakeoffHot()
+CAP_Wing:SetTakeoffType(self.defaulttakeofftype)
 CAP_Wing:SetLowFuelThreshold(0.3)
 CAP_Wing.RandomAssetScore=math.random(50,100)
 CAP_Wing:Start()
