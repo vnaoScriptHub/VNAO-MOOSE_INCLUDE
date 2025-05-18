@@ -2,7 +2,7 @@ name: sync-master
 
 on:
   schedule:
-    - cron: '0 13 * * *'  # Runs daily at midnight UTC
+    - cron: '0 13 * * *'  # Runs daily at 6am MST
   workflow_dispatch:
 
 permissions:
@@ -35,6 +35,6 @@ jobs:
       - name: Merge and Push master
         run: |
           git checkout master
-          git merge upstream/master --allow-unrelated-histories
+          git merge upstream/master
           git push origin master
           
