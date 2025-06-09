@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2025-05-30T20:51:04+02:00-fca6faa3a81188fbaa2fff28f3e859a2102f4c51 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2025-06-08T18:43:35+02:00-62816f217b659990bf908553696f07b4df9624b2 ***')
 if not MOOSE_DEVELOPMENT_FOLDER then
 MOOSE_DEVELOPMENT_FOLDER='Scripts'
 end
@@ -17415,19 +17415,67 @@ trigger.action.illuminationBomb(self:GetVec3(),Power)
 end
 return self
 end
-function COORDINATE:Smoke(SmokeColor,Duration,Delay,Name)
-self:F2({SmokeColor,Name,Duration,Delay})
+function COORDINATE:Smoke(SmokeColor,Duration,Delay,Name,Offset,Direction,Distance)
+self:F2({SmokeColor,Name,Duration,Delay,Offset})
 SmokeColor=SmokeColor or SMOKECOLOR.Green
 if Delay and Delay>0 then
-self:ScheduleOnce(Delay,COORDINATE.Smoke,self,SmokeColor,Duration,0,Name)
+self:ScheduleOnce(Delay,COORDINATE.Smoke,self,SmokeColor,Duration,0,Name,Direction,Distance)
 else
 self.firename=Name or"Smoke-"..math.random(1,100000)
+if Offset or self.SmokeOffset then
+local Angle=Direction or self:GetSmokeOffsetDirection()
+local Distance=Distance or self:GetSmokeOffsetDistance()
+local newpos=self:Translate(Distance,Angle,true,false)
+local newvec3=newpos:GetVec3()
+trigger.action.smoke(newvec3,SmokeColor,self.firename)
+else
 trigger.action.smoke(self:GetVec3(),SmokeColor,self.firename)
+end
 if Duration and Duration>0 then
 self:ScheduleOnce(Duration,COORDINATE.StopSmoke,self,self.firename)
 end
 end
 return self
+end
+function COORDINATE:GetSmokeOffsetDirection()
+local direction=self.SmokeOffsetDirection or math.random(1,359)
+return direction
+end
+function COORDINATE:SetSmokeOffsetDirection(Direction)
+if self then
+self.SmokeOffsetDirection=Direction or math.random(1,359)
+return self
+else
+COORDINATE.SmokeOffsetDirection=Direction or math.random(1,359)
+end
+end
+function COORDINATE:GetSmokeOffsetDistance()
+local distance=self.SmokeOffsetDistance or math.random(10,20)
+return distance
+end
+function COORDINATE:SetSmokeOffsetDistance(Distance)
+if self then
+self.SmokeOffsetDistance=Distance or math.random(10,20)
+return self
+else
+COORDINATE.SmokeOffsetDistance=Distance or math.random(10,20)
+end
+end
+function COORDINATE:SwitchSmokeOffsetOn()
+if self then
+self.SmokeOffset=true
+return self
+else
+COORDINATE.SmokeOffset=true
+end
+end
+function COORDINATE:SwitchSmokeOffsetOff()
+if self then
+self.SmokeOffset=false
+return self
+else
+COORDINATE.SmokeOffset=false
+end
 end
 function COORDINATE:StopSmoke(name)
 self:StopBigSmokeAndFire(name)
@@ -60604,8 +60652,7 @@ self.SRS:SetLabel(self.AirbossRadio.alias or"AIRBOSS")
 self.SRS:SetCoordinate(self.carrier:GetCoordinate())
 self.SRS:SetVolume(Volume or 1)
 if GoogleCreds then
-self.SRS:SetProviderOptionsGoogle(GoogleCreds,GoogleCreds)
-self.SRS:SetProvider(MSRS.Provider.GOOGLE)
+self.SRS:SetGoogle(GoogleCreds)
 end
 if Voice then
 self.SRS:SetVoice(Voice)
@@ -60885,7 +60932,6 @@ self:HandleEvent(EVENTS.Ejection)
 self:HandleEvent(EVENTS.PlayerLeaveUnit,self._PlayerLeft)
 self:HandleEvent(EVENTS.MissionEnd)
 self:HandleEvent(EVENTS.RemoveUnit)
-self:HandleEvent(EVENTS.UnitLost,self.OnEventRemoveUnit)
 self.StatusTimer=TIMER:New(self._Status,self):Start(2,0.5)
 self:__Status(1)
 end
@@ -63558,13 +63604,13 @@ end
 function AIRBOSS:OnEventRemoveUnit(EventData)
 self:F3({eventland=EventData})
 if EventData==nil then
-self:E(self.lid.."ERROR: EventData=nil in event REMOVEUNIT!")
-self:E(EventData)
+self:T(self.lid.."ERROR: EventData=nil in event REMOVEUNIT!")
+self:T(EventData)
 return
 end
 if EventData.IniUnit==nil then
-self:E(self.lid.."ERROR: EventData.IniUnit=nil in event REMOVEUNIT!")
-self:E(EventData)
+self:T(self.lid.."ERROR: EventData.IniUnit=nil in event REMOVEUNIT!")
+self:T(EventData)
 return
 end
 local _unitName=EventData.IniUnitName
