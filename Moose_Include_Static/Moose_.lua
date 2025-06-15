@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2025-06-10T18:05:02+02:00-0aeb1fc6afc2c3e2fcab252f43925d44b11dd0e7 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2025-06-15T13:14:05+02:00-a53763221c4cd17246ae550e6ca8c489289a4b6f ***')
 if not MOOSE_DEVELOPMENT_FOLDER then
 MOOSE_DEVELOPMENT_FOLDER='Scripts'
 end
@@ -29575,7 +29575,7 @@ AIRBASE.Sinai={
 ["Bilbeis_Air_Base"]="Bilbeis Air Base",
 ["Bir_Hasanah"]="Bir Hasanah",
 ["Birma_Air_Base"]="Birma Air Base",
-["Borj_El_Arab_International_Airport"]="Borj El Arab International Airport",
+["Borg_El_Arab_International_Airport"]="Borg El Arab International Airport",
 ["Cairo_International_Airport"]="Cairo International Airport",
 ["Cairo_West"]="Cairo West",
 ["Difarsuwar_Airfield"]="Difarsuwar Airfield",
@@ -74416,8 +74416,8 @@ else
 self.allheligroupset=SET_GROUP:New():FilterCoalitions(self.coalitiontxt):FilterCategoryHelicopter():FilterStart()
 end
 self.mash=SET_GROUP:New():FilterCoalitions(self.coalitiontxt):FilterPrefixes(self.mashprefix):FilterStart()
-self.staticmashes=SET_STATIC:New():FilterCoalitions(self.coalitiontxt):FilterPrefixes(self.mashprefix):FilterOnce()
-self.zonemashes=SET_ZONE:New():FilterPrefixes(self.mashprefix):FilterOnce()
+self.staticmashes=SET_STATIC:New():FilterCoalitions(self.coalitiontxt):FilterPrefixes(self.mashprefix):FilterStart()
+self.zonemashes=SET_ZONE:New():FilterPrefixes(self.mashprefix):FilterStart()
 if not self.coordinate then
 local csarhq=self.mash:GetRandom()
 if csarhq then
