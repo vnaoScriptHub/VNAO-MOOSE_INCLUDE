@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2025-06-15T13:14:05+02:00-a53763221c4cd17246ae550e6ca8c489289a4b6f ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2025-06-15T17:01:58+02:00-cbcc893ce5448885818c2bd43fd8d998ef7a7535 ***')
 if not MOOSE_DEVELOPMENT_FOLDER then
 MOOSE_DEVELOPMENT_FOLDER='Scripts'
 end
@@ -29454,7 +29454,6 @@ AIRBASE.Syria={
 ["Al_Dumayr"]="Al-Dumayr",
 ["Al_Qusayr"]="Al Qusayr",
 ["Aleppo"]="Aleppo",
-["Amman"]="Amman",
 ["An_Nasiriyah"]="An Nasiriyah",
 ["At_Tanf"]="At Tanf",
 ["Bassel_Al_Assad"]="Bassel Al-Assad",
@@ -29486,6 +29485,7 @@ AIRBASE.Syria={
 ["Kuweires"]="Kuweires",
 ["Lakatamia"]="Lakatamia",
 ["Larnaca"]="Larnaca",
+["Marka"]="Marka",
 ["Marj_Ruhayyil"]="Marj Ruhayyil",
 ["Marj_as_Sultan_North"]="Marj as Sultan North",
 ["Marj_as_Sultan_South"]="Marj as Sultan South",
@@ -29516,9 +29516,8 @@ AIRBASE.Syria={
 ["Wujah_Al_Hajar"]="Wujah Al Hajar",
 ["Ben_Gurion"]="Ben Gurion",
 ["Hatzor"]="Hatzor",
-["Palmashim"]="Palmashim",
+["Palmachim"]="Palmachim",
 ["Tel_Nof"]="Tel Nof",
-["Marka"]="Marka",
 }
 AIRBASE.MarianaIslands={
 ["Andersen_AFB"]="Andersen AFB",
@@ -67962,7 +67961,7 @@ CTLD.FixedWingTypes={
 ["Bronco"]="Bronco",
 ["Mosquito"]="Mosquito",
 }
-CTLD.version="1.3.34"
+CTLD.version="1.3.35"
 function CTLD:New(Coalition,Prefixes,Alias)
 local self=BASE:Inherit(self,FSM:New())
 BASE:T({Coalition,Prefixes,Alias})
@@ -71247,15 +71246,20 @@ for index,cargozone in pairs(zones[i])do
 local CZone=cargozone
 local zonename=CZone.name
 local zone=nil
+local airbasezone=false
 if i==4 then
 zone=UNIT:FindByName(zonename)
 else
 zone=ZONE:FindByName(zonename)
 if not zone then
 zone=AIRBASE:FindByName(zonename):GetZone()
+airbasezone=true
 end
 end
 local zonecoord=zone:GetCoordinate()
+if(i==1 or 1==3)and airbasezone==true and zone:IsInstanceOf("ZONE_BASE")then
+zonecoord=zone:GetRandomCoordinate(inner,outer,{land.SurfaceType.LAND})
+end
 if zonecoord then
 local active=CZone.active
 local color=CZone.color
