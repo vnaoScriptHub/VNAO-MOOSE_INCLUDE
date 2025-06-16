@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2025-06-15T13:15:30+02:00-6c2cc37abe4b683a118e09be47959d0093bb7efb ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2025-06-15T17:02:35+02:00-93a8d8bc2d12e7e2e89241a9644b4c77f2b0899b ***')
 if not MOOSE_DEVELOPMENT_FOLDER then
 MOOSE_DEVELOPMENT_FOLDER='Scripts'
 end
@@ -29973,7 +29973,6 @@ AIRBASE.Syria={
 ["Al_Dumayr"]="Al-Dumayr",
 ["Al_Qusayr"]="Al Qusayr",
 ["Aleppo"]="Aleppo",
-["Amman"]="Amman",
 ["An_Nasiriyah"]="An Nasiriyah",
 ["At_Tanf"]="At Tanf",
 ["Bassel_Al_Assad"]="Bassel Al-Assad",
@@ -30005,6 +30004,7 @@ AIRBASE.Syria={
 ["Kuweires"]="Kuweires",
 ["Lakatamia"]="Lakatamia",
 ["Larnaca"]="Larnaca",
+["Marka"]="Marka",
 ["Marj_Ruhayyil"]="Marj Ruhayyil",
 ["Marj_as_Sultan_North"]="Marj as Sultan North",
 ["Marj_as_Sultan_South"]="Marj as Sultan South",
@@ -30035,9 +30035,8 @@ AIRBASE.Syria={
 ["Wujah_Al_Hajar"]="Wujah Al Hajar",
 ["Ben_Gurion"]="Ben Gurion",
 ["Hatzor"]="Hatzor",
-["Palmashim"]="Palmashim",
+["Palmachim"]="Palmachim",
 ["Tel_Nof"]="Tel Nof",
-["Marka"]="Marka",
 }
 AIRBASE.MarianaIslands={
 ["Andersen_AFB"]="Andersen AFB",
@@ -71956,7 +71955,7 @@ CTLD.FixedWingTypes={
 ["Bronco"]="Bronco",
 ["Mosquito"]="Mosquito",
 }
-CTLD.version="1.3.34"
+CTLD.version="1.3.35"
 function CTLD:New(Coalition,Prefixes,Alias)
 local self=BASE:Inherit(self,FSM:New())
 BASE:T({Coalition,Prefixes,Alias})
@@ -75241,15 +75240,20 @@ for index,cargozone in pairs(zones[i])do
 local CZone=cargozone
 local zonename=CZone.name
 local zone=nil
+local airbasezone=false
 if i==4 then
 zone=UNIT:FindByName(zonename)
 else
 zone=ZONE:FindByName(zonename)
 if not zone then
 zone=AIRBASE:FindByName(zonename):GetZone()
+airbasezone=true
 end
 end
 local zonecoord=zone:GetCoordinate()
+if(i==1 or 1==3)and airbasezone==true and zone:IsInstanceOf("ZONE_BASE")then
+zonecoord=zone:GetRandomCoordinate(inner,outer,{land.SurfaceType.LAND})
+end
 if zonecoord then
 local active=CZone.active
 local color=CZone.color
@@ -80699,7 +80703,7 @@ Altitude=Altitude or 10000
 local mission=AUFTRAG:NewORBIT(Coordinate or ZoneCAP:GetCoordinate(),Altitude,Speed or 350,Heading,Leg)
 mission.type=AUFTRAG.Type.CAP
 mission:_SetLogID()
-mission.engageZone=ZoneCAP
+mission.engageZone=ZoneCAP or Coordinate
 mission.engageTargetTypes=TargetTypes or{"Air"}
 mission.missionTask=ENUMS.MissionTask.CAP
 mission.optionROE=ENUMS.ROE.OpenFire
@@ -82345,6 +82349,10 @@ if self:IsStarted()and self:CountOpsGroups()==0 then
 self:T(self.lid..string.format("CheckGroupsDone: Mission is STARTED state %s [FSM=%s] but count of alive OPSGROUP is zero. Mission DONE!",self.status,self:GetState()))
 return true
 end
+if(self:IsStarted()or self:IsExecuting())and self:CountOpsGroups()>0 then
+self:T(self.lid..string.format("CheckGroupsDone: Mission is STARTED state %s [FSM=%s] and count of alive OPSGROUP > zero. Mission NOT DONE!",self.status,self:GetState()))
+return true
+end
 return true
 end
 function AUFTRAG:OnEventUnitLost(EventData)
@@ -82977,7 +82985,14 @@ elseif self.type==AUFTRAG.Type.BOMBCARPET then
 local DCStask=CONTROLLABLE.TaskCarpetBombing(nil,self:GetTargetVec2(),self.engageAsGroup,self.engageWeaponExpend,self.engageQuantity,self.engageDirection,self.engageAltitude,self.engageWeaponType,self.engageLength)
 table.insert(DCStasks,DCStask)
 elseif self.type==AUFTRAG.Type.CAP then
-local DCStask=CONTROLLABLE.EnRouteTaskEngageTargetsInZone(nil,self.engageZone:GetVec2(),self.engageZone:GetRadius(),self.engageTargetTypes,Priority)
+local Vec2=self.engageZone:GetVec2()
+local Radius
+if self.engageZone:IsInstanceOf("COORDINATE")then
+Radius=UTILS.NMToMeters(20)
+else
+Radius=self.engageZone:GetRadius()
+end
+local DCStask=CONTROLLABLE.EnRouteTaskEngageTargetsInZone(nil,Vec2,Radius,self.engageTargetTypes,Priority)
 table.insert(self.enrouteTasks,DCStask)
 elseif self.type==AUFTRAG.Type.CAS then
 local DCStask=CONTROLLABLE.EnRouteTaskEngageTargetsInZone(nil,self.engageZone:GetVec2(),self.engageZone:GetRadius(),self.engageTargetTypes,Priority)
@@ -83029,7 +83044,23 @@ param.lastindex=nil
 DCStask.params=param
 table.insert(DCStasks,DCStask)
 elseif self.type==AUFTRAG.Type.SEAD then
+if self.engageZone then
+self.engageZone:Scan({Object.Category.UNIT},{Unit.Category.GROUND_UNIT})
+local ScanUnitSet=self.engageZone:GetScannedSetUnit()
+local SeadUnitSet=SET_UNIT:New()
+for _,_unit in pairs(ScanUnitSet.Set)do
+local unit=_unit
+if unit and unit:IsAlive()and unit:HasSEAD()then
+self:T("Adding UNIT for SEAD: "..unit:GetName())
+local task=CONTROLLABLE.TaskAttackUnit(nil,unit,GroupAttack,AI.Task.WeaponExpend.ALL,1,Direction,self.engageAltitude,4161536)
+table.insert(DCStasks,task)
+SeadUnitSet:AddUnit(unit)
+end
+end
+self.engageTarget=TARGET:New(SeadUnitSet)
+else
 self:_GetDCSAttackTask(self.engageTarget,DCStasks)
+end
 elseif self.type==AUFTRAG.Type.STRIKE then
 local coords=self.engageTarget:GetCoordinates()
 for _,coord in pairs(coords)do
