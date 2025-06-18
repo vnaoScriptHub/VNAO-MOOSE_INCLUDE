@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2025-06-15T17:01:58+02:00-cbcc893ce5448885818c2bd43fd8d998ef7a7535 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2025-06-18T14:29:34+02:00-8ec86973c66a37871dde49f90ddc38d0989b52a2 ***')
 if not MOOSE_DEVELOPMENT_FOLDER then
 MOOSE_DEVELOPMENT_FOLDER='Scripts'
 end
@@ -21139,7 +21139,7 @@ end
 return self:_SpawnStatic(self.TemplateStaticUnit,self.CountryID)
 end
 function SPAWNSTATIC:SpawnFromZone(Zone,Heading,NewName)
-local Static=self:SpawnFromPointVec2(Zone:GetPointVec2(),Heading,NewName)
+local Static=self:SpawnFromCoordinate(Zone:GetCoordinate(),Heading,NewName)
 return Static
 end
 function SPAWNSTATIC:_SpawnStatic(Template,CountryID)
@@ -85380,7 +85380,7 @@ Wavenet={
 ["en_GB_Wavenet_F"]='en-GB-Wavenet-N',
 ["en_GB_Wavenet_O"]='en-GB-Wavenet-O',
 ["en_GB_Wavenet_N"]='en-GB-Wavenet-N',
-["en_US_Wavenet_A"]='en-US-Wavenet-N',
+["en_US_Wavenet_A"]='en-US-Wavenet-A',
 ["en_US_Wavenet_B"]='en-US-Wavenet-B',
 ["en_US_Wavenet_C"]='en-US-Wavenet-C',
 ["en_US_Wavenet_D"]='en-US-Wavenet-D',
