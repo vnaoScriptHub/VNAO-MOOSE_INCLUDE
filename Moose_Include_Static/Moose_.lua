@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2025-07-25T14:57:58+02:00-7d3fc1740a16553105a0fd9505bdbf44d7a1d989 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2025-07-26T09:01:02+02:00-f172f6efebb963da4ec6beeb7a08b00e418fb930 ***')
 if not MOOSE_DEVELOPMENT_FOLDER then
 MOOSE_DEVELOPMENT_FOLDER='Scripts'
 end
@@ -4149,6 +4149,19 @@ return v
 end
 end
 end
+function UTILS.DoStringIn(State,DoString)
+return net.dostring_in(State,DoString)
+end
+function UTILS.ShowPicture(FileName,Duration,ClearView,StartDelay,HorizontalAlign,VerticalAlign,Size,SizeUnits)
+ClearView=ClearView or false
+StartDelay=StartDelay or 0
+HorizontalAlign=HorizontalAlign or 1
+VerticalAlign=VerticalAlign or 1
+Size=Size or 100
+SizeUnits=SizeUnits or 0
+if ClearView then ClearView="true"else ClearView="false"end
+net.dostring_in("mission",string.format("a_out_picture(getValueResourceByKey(\"%s\"), %d, %s, %d, \"%d\", \"%d\", %d, \"%d\")",FileName,Duration or 10,ClearView,StartDelay,HorizontalAlign,VerticalAlign,Size,SizeUnits))
+end
 function UTILS.ShowHelperGate(pos,heading)
 net.dostring_in("mission",string.format("a_show_helper_gate(%s, %s, %s, %f)",pos.x,pos.y,pos.z,math.rad(heading)))
 end
@@ -6497,7 +6510,7 @@ local Source=Info.source or"?"
 local Line=Info.currentline or"?"
 local Name=Info.name or"?"
 local ErrorHandler=function(errmsg)
-env.info("Error in timer function: "..errmsg)
+env.info("Error in timer function: "..errmsg or"")
 if BASE.Debug~=nil then
 env.info(BASE.Debug.traceback())
 end
@@ -9084,6 +9097,14 @@ return self
 end
 function ZONE_BASE:GetZoneProbability()
 return self.ZoneProbability
+end
+function ZONE_BASE:FindNearestCoordinateOnRadius(Outsidecoordinate)
+local Vec1=self:GetVec2()
+local Radius=self:GetRadius()
+local Vec2=Outsidecoordinate:GetVec2()
+local Point=UTILS.FindNearestPointOnCircle(Vec1,Radius,Vec2)
+local rc=COORDINATE:NewFromVec2(Point)
+return rc
 end
 function ZONE_BASE:GetZoneMaybe()
 local Randomization=math.random()
@@ -16982,6 +17003,17 @@ end
 function COORDINATE:GetLandHeight()
 local Vec2={x=self.x,y=self.z}
 return land.getHeight(Vec2)
+end
+function COORDINATE:GetLandProfileVec3(Destination)
+return land.profile(self:GetVec3(),Destination)
+end
+function COORDINATE:GetLandProfileCoordinates(Destination)
+local points=self:GetLandProfileVec3(Destination:GetVec3())
+local coords={}
+for _,point in ipairs(points)do
+table.insert(coords,COORDINATE:NewFromVec3(point))
+end
+return coords
 end
 function COORDINATE:SetHeading(Heading)
 self.Heading=Heading
