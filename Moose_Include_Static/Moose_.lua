@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2025-07-26T09:01:02+02:00-f172f6efebb963da4ec6beeb7a08b00e418fb930 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2025-07-27T14:50:45+02:00-b9be3aa7f888cf1b3f92704bf13d4884d708e4bb ***')
 if not MOOSE_DEVELOPMENT_FOLDER then
 MOOSE_DEVELOPMENT_FOLDER='Scripts'
 end
@@ -4161,6 +4161,16 @@ Size=Size or 100
 SizeUnits=SizeUnits or 0
 if ClearView then ClearView="true"else ClearView="false"end
 net.dostring_in("mission",string.format("a_out_picture(getValueResourceByKey(\"%s\"), %d, %s, %d, \"%d\", \"%d\", %d, \"%d\")",FileName,Duration or 10,ClearView,StartDelay,HorizontalAlign,VerticalAlign,Size,SizeUnits))
+end
+function UTILS.LoadMission(FileName)
+net.dostring_in("mission",string.format("a_load_mission(\"%s\")",FileName))
+end
+function UTILS.SetMissionBriefing(Coalition,Text,Picture)
+Text=Text or""
+Text=Text:gsub("\n","\\n")
+Picture=Picture or""
+local coalName=string.lower(UTILS.GetCoalitionName(Coalition))
+net.dostring_in("mission",string.format("a_set_briefing(\"%s\", getValueResourceByKey(\"%s\"), \"%s\")",coalName,Picture,Text))
 end
 function UTILS.ShowHelperGate(pos,heading)
 net.dostring_in("mission",string.format("a_show_helper_gate(%s, %s, %s, %f)",pos.x,pos.y,pos.z,math.rad(heading)))
