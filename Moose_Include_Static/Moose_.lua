@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2025-07-27T14:50:45+02:00-b9be3aa7f888cf1b3f92704bf13d4884d708e4bb ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2025-07-29T13:04:46+02:00-7149226283168e048cff7d8ee44e0376f23cde1c ***')
 if not MOOSE_DEVELOPMENT_FOLDER then
 MOOSE_DEVELOPMENT_FOLDER='Scripts'
 end
@@ -4152,7 +4152,7 @@ end
 function UTILS.DoStringIn(State,DoString)
 return net.dostring_in(State,DoString)
 end
-function UTILS.ShowPicture(FileName,Duration,ClearView,StartDelay,HorizontalAlign,VerticalAlign,Size,SizeUnits)
+function UTILS.ShowPicture(FilePath,Duration,ClearView,StartDelay,HorizontalAlign,VerticalAlign,Size,SizeUnits)
 ClearView=ClearView or false
 StartDelay=StartDelay or 0
 HorizontalAlign=HorizontalAlign or 1
@@ -4160,7 +4160,7 @@ VerticalAlign=VerticalAlign or 1
 Size=Size or 100
 SizeUnits=SizeUnits or 0
 if ClearView then ClearView="true"else ClearView="false"end
-net.dostring_in("mission",string.format("a_out_picture(getValueResourceByKey(\"%s\"), %d, %s, %d, \"%d\", \"%d\", %d, \"%d\")",FileName,Duration or 10,ClearView,StartDelay,HorizontalAlign,VerticalAlign,Size,SizeUnits))
+net.dostring_in("mission",string.format("a_out_picture(\"%s\", %d, %s, %d, \"%d\", \"%d\", %d, \"%d\")",FilePath,Duration or 10,ClearView,StartDelay,HorizontalAlign,VerticalAlign,Size,SizeUnits))
 end
 function UTILS.LoadMission(FileName)
 net.dostring_in("mission",string.format("a_load_mission(\"%s\")",FileName))
@@ -4170,7 +4170,7 @@ Text=Text or""
 Text=Text:gsub("\n","\\n")
 Picture=Picture or""
 local coalName=string.lower(UTILS.GetCoalitionName(Coalition))
-net.dostring_in("mission",string.format("a_set_briefing(\"%s\", getValueResourceByKey(\"%s\"), \"%s\")",coalName,Picture,Text))
+net.dostring_in("mission",string.format("a_set_briefing(\"%s\", \"%s\", \"%s\")",coalName,Picture,Text))
 end
 function UTILS.ShowHelperGate(pos,heading)
 net.dostring_in("mission",string.format("a_show_helper_gate(%s, %s, %s, %f)",pos.x,pos.y,pos.z,math.rad(heading)))
@@ -68747,6 +68747,7 @@ UserSetGroup=nil,
 LoadedGroupsTable={},
 keeploadtable=true,
 allowCATransport=false,
+VehicleMoveFormation=AI.Task.VehicleFormation.VEE,
 }
 CTLD.RadioModulation={
 AM=0,
@@ -68788,7 +68789,7 @@ CTLD.FixedWingTypes={
 ["Bronco"]="Bronco",
 ["Mosquito"]="Mosquito",
 }
-CTLD.version="1.3.36"
+CTLD.version="1.3.37"
 function CTLD:New(Coalition,Prefixes,Alias)
 local self=BASE:Inherit(self,FSM:New())
 BASE:T({Coalition,Prefixes,Alias})
@@ -68891,6 +68892,7 @@ self.smokedistance=2000
 self.movetroopstowpzone=true
 self.movetroopsdistance=5000
 self.troopdropzoneradius=100
+self.VehicleMoveFormation=AI.Task.VehicleFormation.VEE
 self.enableHercules=false
 self.enableFixedWing=false
 self.FixedMinAngels=165
@@ -70707,6 +70709,13 @@ self:T(self.lid.."Group KIA while building!")
 end
 return self
 end
+function CTLD:_GetVehicleFormation()
+local VehicleMoveFormation=self.VehicleMoveFormation or AI.Task.VehicleFormation.VEE
+if type(self.VehicleMoveFormation)=="table"then
+VehicleMoveFormation=self.VehicleMoveFormation[math.random(1,#self.VehicleMoveFormation)]
+end
+return VehicleMoveFormation
+end
 function CTLD:_MoveGroupToZone(Group)
 self:T(self.lid.." _MoveGroupToZone")
 local groupname=Group:GetName()or"none"
@@ -70716,12 +70725,12 @@ self:T({canmove=outcome,name=name,zone=zone,dist=distance,max=self.movetroopsdis
 if(distance<=self.movetroopsdistance)and outcome==true and zone~=nil then
 local groupname=Group:GetName()
 local zonecoord=zone:GetRandomCoordinate(20,125)
-local coordinate=zonecoord:GetVec2()
+local formation=self:_GetVehicleFormation()
 Group:SetAIOn()
 Group:OptionAlarmStateAuto()
 Group:OptionDisperseOnAttack(30)
-Group:OptionROEOpenFirePossible()
-Group:RouteToVec2(coordinate,5)
+Group:OptionROEOpenFireWeaponFree()
+Group:RouteGroundTo(zonecoord,5,formation)
 end
 return self
 end
@@ -72927,6 +72936,14 @@ local filename=self.filename
 local filepath=self.filepath
 self:__Save(interval,filepath,filename)
 end
+if type(self.VehicleMoveFormation)=="table"then
+local Formations={}
+for _,_formation in pairs(self.VehicleMoveFormation)do
+table.insert(Formations,_formation)
+end
+self.VehicleMoveFormation=nil
+self.VehicleMoveFormation=Formations
+end
 return self
 end
 function CTLD:onbeforeStatus(From,Event,To)
@@ -74316,7 +74333,7 @@ wetfeet=true
 end
 if self.csarUsePara==false or(self.csarUsePara and wetfeet)then
 local _freq=self:_GenerateADFFrequency()
-self:_AddCsar(_coalition,_unit:GetCountry(),initcoord,_unit:GetTypeName(),_unit:GetName(),_event.IniPlayerName,_freq,false,"none")
+self:_AddCsar(_coalition,_unit:GetCountry(),initcoord,_unit:GetTypeName(),_unit:GetName(),_event.IniPlayerName,_freq,self.suppressmessages,"none")
 return self
 end
 elseif _event.id==EVENTS.Land then
@@ -74364,7 +74381,7 @@ self:T("Country = ".._country.." Coalition = ".._coalition)
 if _coalition==self.coalition then
 local _freq=self:_GenerateADFFrequency()
 self:I({coalition=_coalition,country=_country,coord=_LandingPos,name=_unitname,player=_event.IniPlayerName,freq=_freq})
-self:_AddCsar(_coalition,_country,_LandingPos,nil,_unitname,_event.IniPlayerName,_freq,false,"none")
+self:_AddCsar(_coalition,_country,_LandingPos,nil,_unitname,_event.IniPlayerName,_freq,self.suppressmessages,"none")
 Unit.destroy(_event.initiator)
 end
 end
@@ -75595,7 +75612,7 @@ local description=dataset[7]
 local typeName=dataset[8]
 local unitName=dataset[9]
 local freq=tonumber(dataset[10])
-self:_AddCsar(coalition,country,point,typeName,unitName,playerName,freq,nil,description,nil)
+self:_AddCsar(coalition,country,point,typeName,unitName,playerName,freq,false,description,nil)
 end
 return self
 end
