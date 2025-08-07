@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2025-08-04T16:12:01+02:00-eb6eba25f3e6a4842bc9e8fa85fb4f96e00dac51 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2025-08-07T11:31:54+02:00-32e61a7a0981c92628b2e029da80d33f76448fde ***')
 if not MOOSE_DEVELOPMENT_FOLDER then
 MOOSE_DEVELOPMENT_FOLDER='Scripts'
 end
@@ -9611,6 +9611,9 @@ function ZONE_RADIUS:GetRandomVec2(inner,outer,surfacetypes)
 local Vec2=self:GetVec2()
 local _inner=inner or 0
 local _outer=outer or self:GetRadius()
+math.random()
+math.random()
+math.random()
 if surfacetypes and type(surfacetypes)~="table"then
 surfacetypes={surfacetypes}
 end
@@ -10309,6 +10312,9 @@ local InZone=self:IsVec2InZone({x=Vec3.x,y=Vec3.z})
 return InZone
 end
 function ZONE_POLYGON_BASE:GetRandomVec2()
+math.random()
+math.random()
+math.random()
 local weights={}
 for _,triangle in pairs(self._Triangles)do
 weights[triangle]=triangle.SurfaceArea/self.SurfaceArea
@@ -17049,6 +17055,9 @@ return coord
 end
 function COORDINATE:GetRandomVec2InRadius(OuterRadius,InnerRadius)
 self:F2({OuterRadius,InnerRadius})
+math.random()
+math.random()
+math.random()
 local Theta=2*math.pi*math.random()
 local Radials=math.random()+math.random()
 if Radials>1 then
@@ -35369,6 +35378,7 @@ local TargetType=nil
 local TargetUnitCoalition=nil
 local TargetUnitCategory=nil
 local TargetUnitType=nil
+local TargetIsScenery=false
 if Event.IniDCSUnit then
 InitUnit=Event.IniDCSUnit
 InitUNIT=Event.IniUnit
@@ -35394,6 +35404,10 @@ TargetPlayerName=Event.TgtPlayerName
 TargetCoalition=Event.TgtCoalition
 TargetCategory=Event.TgtCategory
 TargetType=Event.TgtTypeName
+if(not TargetCategory)and TargetUNIT~=nil and TargetUnit:IsInstanceOf("SCENERY")then
+TargetCategory=Unit.Category.STRUCTURE
+TargetIsScenery=true
+end
 TargetUnitCoalition=_SCORINGCoalition[TargetCoalition]
 TargetUnitCategory=_SCORINGCategory[TargetCategory]
 TargetUnitType=TargetType
@@ -35463,9 +35477,14 @@ MESSAGE:NewType(self.DisplayMessagePrefix.."Player '"..InitPlayerName.."' hit en
 MESSAGE.Type.Update)
 :ToAllIf(self:IfMessagesHit()and self:IfMessagesToAll())
 :ToCoalitionIf(InitCoalition,self:IfMessagesHit()and self:IfMessagesToCoalition())
-else
+elseif TargetIsScenery~=true then
 MESSAGE:NewType(self.DisplayMessagePrefix.."Player '"..InitPlayerName.."' hit enemy target "..TargetUnitCategory.." ( "..TargetType.." ) "..PlayerHit.ScoreHit.." times. "..
 "Score: "..PlayerHit.Score..".  Score Total:"..Player.Score-Player.Penalty,
+MESSAGE.Type.Update)
+:ToAllIf(self:IfMessagesHit()and self:IfMessagesToAll())
+:ToCoalitionIf(InitCoalition,self:IfMessagesHit()and self:IfMessagesToCoalition())
+elseif TargetIsScenery==true then
+MESSAGE:NewType(self.DisplayMessagePrefix.."Player '"..InitPlayerName.."' hit scenery object.".." Score: "..PlayerHit.Score..".  Score Total:"..Player.Score-Player.Penalty,
 MESSAGE.Type.Update)
 :ToAllIf(self:IfMessagesHit()and self:IfMessagesToAll())
 :ToCoalitionIf(InitCoalition,self:IfMessagesHit()and self:IfMessagesToCoalition())
@@ -35473,7 +35492,7 @@ end
 self:ScoreCSV(InitPlayerName,TargetPlayerName,"HIT_SCORE",1,1,InitUnitName,InitUnitCoalition,InitUnitCategory,InitUnitType,TargetUnitName,TargetUnitCoalition,TargetUnitCategory,TargetUnitType)
 end
 else
-MESSAGE:NewType(self.DisplayMessagePrefix.."Player '"..InitPlayerName.."' hit scenery object.",
+MESSAGE:NewType(self.DisplayMessagePrefix.."Player '"..InitPlayerName.."' hit nothing special.",
 MESSAGE.Type.Update)
 :ToAllIf(self:IfMessagesHit()and self:IfMessagesToAll())
 :ToCoalitionIf(InitCoalition,self:IfMessagesHit()and self:IfMessagesToCoalition())
@@ -124836,12 +124855,18 @@ end
 return true
 end
 function CIRCLE:GetRandomVec2()
+math.random()
+math.random()
+math.random()
 local angle=math.random()*2*math.pi
 local rx=math.random(0,self.Radius)*math.cos(angle)+self.CenterVec2.x
 local ry=math.random(0,self.Radius)*math.sin(angle)+self.CenterVec2.y
 return{x=rx,y=ry}
 end
 function CIRCLE:GetRandomVec2OnBorder()
+math.random()
+math.random()
+math.random()
 local angle=math.random()*2*math.pi
 local rx=self.Radius*math.cos(angle)+self.CenterVec2.x
 local ry=self.Radius*math.sin(angle)+self.CenterVec2.y
@@ -125524,6 +125549,9 @@ local has_pos=(d1>0)or(d2>0)or(d3>0)
 return not(has_neg and has_pos)
 end
 function TRIANGLE:GetRandomVec2(points)
+math.random()
+math.random()
+math.random()
 points=points or self.Points
 local pt={math.random(),math.random()}
 table.sort(pt)
