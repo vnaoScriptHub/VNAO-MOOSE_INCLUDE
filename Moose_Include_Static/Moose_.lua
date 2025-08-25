@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2025-08-24T15:23:32+02:00-4553785918f3c978e6bb49efc64bf951f187c31b ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2025-08-25T12:08:27+02:00-27fe314c1ee5c85877e95e1e2cd8daf48195d679 ***')
 if not MOOSE_DEVELOPMENT_FOLDER then
 MOOSE_DEVELOPMENT_FOLDER='Scripts'
 end
@@ -4288,7 +4288,7 @@ qx=qx+shift_factor*norm_dx
 qy=qy+shift_factor*norm_dy
 return{x=qx,y=qy}
 end
-function UTILS.ValidateAndRepositionGroundUnits(Anchor,Positions,MaxRadius,Spacing)
+function UTILS.ValidateAndRepositionGroundUnits(Positions,Anchor,MaxRadius,Spacing)
 local units=Positions
 Anchor=Anchor or UTILS.GetCenterPoint(units)
 local gPos={x=Anchor.x,y=Anchor.z or Anchor.y}
@@ -4328,20 +4328,9 @@ local closestSpot
 for _,spot in pairs(spots)do
 local dist=UTILS.VecDist2D(pos,spot)
 if dist<closestDist then
-local skip=false
-for _,unit2 in pairs(units)do
-local pos2={x=unit2.x,y=unit2.z or unit2.y}
-local dist2=UTILS.VecDist2D(spot,pos2)
-if dist2<spacing and isOnLand then
-skip=true
-break
-end
-end
-if not skip then
 closestDist=dist
 closestSpot=spot
 sid=si
-end
 end
 si=si+1
 end
@@ -20218,7 +20207,7 @@ end
 if self.SpawnValidateAndRepositionGroundUnits then
 local units=SpawnTemplate.units
 local gPos={x=SpawnTemplate.x,y=SpawnTemplate.y}
-UTILS.ValidateAndRepositionGroundUnits(gPos,units,self.SpawnValidateAndRepositionGroundUnitsRadius,self.SpawnValidateAndRepositionGroundUnitsSpacing)
+UTILS.ValidateAndRepositionGroundUnits(units,gPos,self.SpawnValidateAndRepositionGroundUnitsRadius,self.SpawnValidateAndRepositionGroundUnitsSpacing)
 end
 SpawnTemplate.CategoryID=self.SpawnInitCategory or SpawnTemplate.CategoryID
 SpawnTemplate.CountryID=self.SpawnInitCountry or SpawnTemplate.CountryID
@@ -50927,6 +50916,9 @@ self:I(self.lid..text)
 self:T({DCSdesc=asset.DCSdesc})
 self:T3({Template=asset.template})
 end
+function WAREHOUSE:SetValidateAndRepositionGroundUnits(Enabled)
+self.ValidateAndRepositionGroundUnits=Enabled
+end
 function WAREHOUSE:onafterNewAsset(From,Event,To,asset,assignment)
 self:T(self.lid..string.format("New asset %s id=%d with assignment %s.",tostring(asset.templatename),asset.uid,tostring(assignment)))
 end
@@ -51742,6 +51734,9 @@ template.route.points[1].y=coord.z
 template.x=coord.x
 template.y=coord.z
 template.alt=coord.y
+if self.ValidateAndRepositionGroundUnits then
+UTILS.ValidateAndRepositionGroundUnits(template.units)
+end
 local group=_DATABASE:Spawn(template)
 return group
 end
