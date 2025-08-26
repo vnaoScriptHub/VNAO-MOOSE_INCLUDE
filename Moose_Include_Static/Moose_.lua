@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2025-08-25T12:09:30+02:00-c30d517a00b3fd3b89c0b4e14673c7dacf499027 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2025-08-26T06:23:46+02:00-7b7a8c1babc14ee24ae0579ca16561495027685c ***')
 if not MOOSE_DEVELOPMENT_FOLDER then
 MOOSE_DEVELOPMENT_FOLDER='Scripts'
 end
@@ -28416,6 +28416,9 @@ if self.InitRespawnModu then
 Template.modulation=self.InitRespawnModu
 end
 self:Destroy(false)
+if self.ValidateAndRepositionGroundUnits then
+UTILS.ValidateAndRepositionGroundUnits(Template.units)
+end
 self:ScheduleOnce(0.1,_DATABASE.Spawn,_DATABASE,Template)
 self:ResetEvents()
 return self
@@ -28929,6 +28932,9 @@ end
 end
 return isAAA
 end
+function GROUP:SetValidateAndRepositionGroundUnits(Enabled)
+self.ValidateAndRepositionGroundUnits=Enabled
+end
 UNIT={
 ClassName="UNIT",
 UnitName=nil,
@@ -29066,6 +29072,9 @@ i=i+1
 end
 end
 SpawnGroupTemplate.groupId=nil
+if self.ValidateAndRepositionGroundUnits then
+UTILS.ValidateAndRepositionGroundUnits(SpawnGroupTemplate.units)
+end
 _DATABASE:Spawn(SpawnGroupTemplate)
 end
 function UNIT:IsActive()
@@ -29848,6 +29857,9 @@ net.dostring_in("mission",string.format("a_unit_set_life_percentage(%d, %f)",sel
 end
 function UNIT:SetCarrierIlluminationMode(Mode)
 UTILS.SetCarrierIlluminationMode(self:GetID(),Mode)
+end
+function UNIT:SetValidateAndRepositionGroundUnits(Enabled)
+self.ValidateAndRepositionGroundUnits=Enabled
 end
 CLIENT={
 ClassName="CLIENT",
@@ -98913,6 +98925,7 @@ if self:IsAirwing()then
 opsgroup=FLIGHTGROUP:New(asset.spawngroupname)
 elseif self:IsBrigade()then
 opsgroup=ARMYGROUP:New(asset.spawngroupname)
+opsgroup:SetValidateAndRepositionGroundUnits(self.ValidateAndRepositionGroundUnits)
 elseif self:IsFleet()then
 opsgroup=NAVYGROUP:New(asset.spawngroupname)
 else
@@ -104913,6 +104926,9 @@ if Delay and Delay>0 then
 self:ScheduleOnce(Delay,OPSGROUP._Spawn,self,0,Template)
 else
 self:T2({Template=Template})
+if self:IsArmygroup()and self.ValidateAndRepositionGroundUnits then
+UTILS.ValidateAndRepositionGroundUnits(Template.units)
+end
 self.group=_DATABASE:Spawn(Template)
 self.dcsgroup=self:GetDCSGroup()
 self.controller=self.dcsgroup:getController()
@@ -108038,6 +108054,9 @@ end
 end
 end
 return targetgroup,targetdist
+end
+function OPSGROUP:SetValidateAndRepositionGroundUnits(Enabled)
+self.ValidateAndRepositionGroundUnits=Enabled
 end
 OPSTRANSPORT={
 ClassName="OPSTRANSPORT",
