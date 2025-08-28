@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2025-08-27T14:24:43+02:00-9f1777ca9b5530431f26ee5aa859323598bb13b0 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2025-08-28T13:17:57+02:00-efb1d79e7739c15898d4ce4bf7cd6088b85540e3 ***')
 if not MOOSE_DEVELOPMENT_FOLDER then
 MOOSE_DEVELOPMENT_FOLDER='Scripts'
 end
@@ -81904,7 +81904,12 @@ mission.categories={AUFTRAG.Category.AIRCRAFT}
 return mission
 end
 function AUFTRAG:NewTANKER(Coordinate,Altitude,Speed,Heading,Leg,RefuelSystem)
-local mission=AUFTRAG:NewORBIT_RACETRACK(Coordinate,Altitude,Speed,Heading,Leg)
+local mission
+if Leg==0 then
+mission=AUFTRAG:NewORBIT_CIRCLE(Coordinate,Altitude,Speed)
+else
+mission=AUFTRAG:NewORBIT_RACETRACK(Coordinate,Altitude,Speed,Heading,Leg)
+end
 mission.type=AUFTRAG.Type.TANKER
 mission:_SetLogID()
 mission.refuelSystem=RefuelSystem
@@ -90698,7 +90703,7 @@ descriptors={},
 properties={},
 operations={},
 }
-COHORT.version="0.3.6"
+COHORT.version="0.3.7"
 _COHORTNAMES={}
 function COHORT:New(TemplateGroupName,Ngroups,CohortName)
 local name=tostring(CohortName or TemplateGroupName)
@@ -90849,9 +90854,10 @@ function COHORT:SetMissionRange(Range)
 self.engageRange=UTILS.NMToMeters(Range or 150)
 return self
 end
-function COHORT:SetCallsign(Callsign,Index)
+function COHORT:SetCallsign(Callsign,Index,CallsignString)
 self.callsignName=Callsign
 self.callsignIndex=Index
+self.callsignClearName=CallsignString
 self.callsign={}
 self.callsign.NumberSquad=Callsign
 self.callsign.NumberGroup=Index
@@ -90951,6 +90957,9 @@ self.callsigncounter=self.callsigncounter+2
 else
 self.callsigncounter=self.callsigncounter+1
 end
+callsign["name"]=self.callsignClearName or UTILS.GetCallsignName(self.callsignName)or"None"
+callsign["name"]=string.format("%s%d%d",callsign["name"],callsign[2],callsign[3])
+callsign[4]=callsign["name"]
 Asset.callsign[i]=callsign
 self:T3({callsign=callsign})
 end
