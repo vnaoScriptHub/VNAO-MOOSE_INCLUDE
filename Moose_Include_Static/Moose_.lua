@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2025-09-23T15:26:54+02:00-d0cf68c2e2954be7ac3edd8a00bd3f9f6c15f82d ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2025-09-25T12:13:29+02:00-8fb4d4c7c634d8602bdd14e4b9cb8804333b6b56 ***')
 if not MOOSE_DEVELOPMENT_FOLDER then
 MOOSE_DEVELOPMENT_FOLDER='Scripts'
 end
@@ -9555,10 +9555,9 @@ radius=ZoneRadius,
 }
 }
 local function EvaluateZone(ZoneObject)
-if ZoneObject then
+if ZoneObject and self:IsVec3InZone(ZoneObject:getPoint())then
 local ObjectCategory=Object.getCategory(ZoneObject)
 if(ObjectCategory==Object.Category.UNIT and ZoneObject:isExist()and ZoneObject:isActive())or(ObjectCategory==Object.Category.STATIC and ZoneObject:isExist())then
-local CoalitionDCSUnit=ZoneObject:getCoalition()
 local Include=false
 if not UnitCategories then
 Include=true
@@ -10609,10 +10608,9 @@ radius=ZoneRadius,
 }
 }
 local function EvaluateZone(ZoneObject)
-if ZoneObject then
+if ZoneObject and self:IsVec3InZone(ZoneObject:getPoint())then
 local ObjectCategory=Object.getCategory(ZoneObject)
 if(ObjectCategory==Object.Category.UNIT and ZoneObject:isExist()and ZoneObject:isActive())or(ObjectCategory==Object.Category.STATIC and ZoneObject:isExist())then
-local CoalitionDCSUnit=ZoneObject:getCoalition()
 local Include=false
 if not UnitCategories then
 Include=true
@@ -10631,7 +10629,7 @@ self.ScanData.Coalitions[CoalitionDCSUnit]=true
 self.ScanData.Units[ZoneObject]=ZoneObject
 end
 end
-if ObjectCategory==Object.Category.SCENERY and self:IsVec3InZone(ZoneObject:getPoint())then
+if ObjectCategory==Object.Category.SCENERY then
 local SceneryType=ZoneObject:getTypeName()
 local SceneryName=ZoneObject:getName()
 self.ScanData.Scenery[SceneryType]=self.ScanData.Scenery[SceneryType]or{}
@@ -69156,7 +69154,7 @@ CTLD.FixedWingTypes={
 ["Bronco"]="Bronco",
 ["Mosquito"]="Mosquito",
 }
-CTLD.version="1.3.37"
+CTLD.version="1.3.38"
 function CTLD:New(Coalition,Prefixes,Alias)
 local self=BASE:Inherit(self,FSM:New())
 BASE:T({Coalition,Prefixes,Alias})
@@ -70362,6 +70360,7 @@ self:_UpdateUnitCargoMass(Unit)
 self:_RefreshDropCratesMenu(Group,Unit)
 self:_RefreshLoadCratesMenu(Group,Unit)
 self:_CleanupTrackedCrates(crateidsloaded)
+self:__CratesPickedUp(1,Group,Unit,loaded.Cargo)
 end
 end
 return self
