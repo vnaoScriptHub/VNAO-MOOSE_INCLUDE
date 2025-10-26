@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2025-10-24T16:27:17+02:00-86798ae9ea7dc803059feb3f367cfedaf0fe1131 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2025-10-26T07:27:37+01:00-55242edbde03d158747c8f829b78643ecc81113b ***')
 if not MOOSE_DEVELOPMENT_FOLDER then
 MOOSE_DEVELOPMENT_FOLDER='Scripts'
 end
@@ -3959,15 +3959,48 @@ local SpacingY=SpacingY or 100
 local FarpVec2=Coordinate:GetVec2()
 if NumberPads>1 then
 local Grid=UTILS.GenerateGridPoints(FarpVec2,NumberPads,SpacingX,SpacingY)
+local groupData={
+["visible"]=true,
+["hidden"]=false,
+["units"]={},
+["y"]=0,
+["x"]=0,
+["name"]=Name,
+}
+local unitData={
+["category"]="Heliports",
+["type"]=STypeName,
+["y"]=0,
+["x"]=0,
+["name"]=Name,
+["heading"]=0,
+["heliport_modulation"]=mod,
+["heliport_frequency"]=freq,
+["heliport_callsign_id"]=callsign,
+["dead"]=false,
+["shape_name"]=SShapeName,
+["dynamicSpawn"]=DynamicSpawns,
+["allowHotStart"]=HotStart,
+}
 for id,gridpoint in ipairs(Grid)do
-local location=COORDINATE:NewFromVec2(gridpoint)
-local newfarp=SPAWNSTATIC:NewFromType(STypeName,"Heliports",Country)
-newfarp:InitShape(SShapeName)
-newfarp:InitFARP(callsign,freq,mod,DynamicSpawns,HotStart)
-local spawnedfarp=newfarp:SpawnFromCoordinate(location,0,Name.."-"..id)
-table.insert(ReturnObjects,spawnedfarp)
-PopulateStorage(Name.."-"..id,liquids,equip,airframes)
+local UnitTemplate=UTILS.DeepCopy(unitData)
+UnitTemplate.x=gridpoint.x
+UnitTemplate.y=gridpoint.y
+UnitTemplate.name=Name.."-"..id
+table.insert(groupData.units,UnitTemplate)
+if id==1 then
+groupData.x=gridpoint.x
+groupData.y=gridpoint.y
 end
+end
+local Static=coalition.addGroup(Country,-1,groupData)
+local Event={
+id=EVENTS.Birth,
+time=timer.getTime(),
+initiator=Static
+}
+world.onEvent(Event)
+PopulateStorage(Name.."-1",liquids,equip,airframes)
 else
 local newfarp=SPAWNSTATIC:NewFromType(STypeName,"Heliports",Country)
 newfarp:InitShape(SShapeName)
@@ -62176,7 +62209,7 @@ theta=math.asin(vdeck*math.sin(alpha)/vwind)
 v=vdeck*math.cos(alpha)-vwind*math.cos(theta)
 end
 local magvar=magnetic and self.magvar or 0
-local intowind=self:GetHeadingIntoWind_old(vdeck,magnetic)
+local intowind=(540+(windto-magvar+math.deg(theta)))%360
 return intowind,v
 end
 function AIRBOSS:GetBRCintoWind(vdeck)
@@ -62382,6 +62415,7 @@ local N=nXX+nIM+nIC+nAR+nIW
 local nL=count(G,'_')/2
 local nS=count(G,'%(')
 local nN=N-nS-nL
+if TIG=="_OK_"then nL=nL-1 end
 local Tgroove=playerData.Tgroove
 local TgrooveUnicorn=Tgroove and(Tgroove>=16.49 and Tgroove<=16.59)or false
 local TgrooveVstolUnicorn=Tgroove and(Tgroove>=60.0 and Tgroove<=65.0)and playerData.actype==AIRBOSS.AircraftCarrier.AV8B or false
