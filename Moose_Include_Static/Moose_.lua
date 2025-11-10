@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2025-11-09T09:24:48+01:00-98d02d753253b352a2ca92b4e234f2658cb21c7c ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2025-11-09T17:19:29+01:00-046bd37fd52641b3afe9cd00df7b711c29619c2e ***')
 if not MOOSE_DEVELOPMENT_FOLDER then
 MOOSE_DEVELOPMENT_FOLDER='Scripts'
 end
@@ -12957,6 +12957,19 @@ List={},
 Index={},
 Database=nil,
 CallScheduler=nil,
+Filter={},
+FilterCoalitionNumbers={
+[coalition.side.RED+1]="red",
+[coalition.side.BLUE+1]="blue",
+[coalition.side.NEUTRAL+1]="neutral",
+},
+FilterMeta={
+Coalitions={
+["red"]=coalition.side.RED,
+["blue"]=coalition.side.BLUE,
+["neutral"]=coalition.side.NEUTRAL,
+},
+},
 }
 function SET_BASE:New(Database)
 local self=BASE:Inherit(self,FSM:New())
@@ -12995,6 +13008,20 @@ end
 function SET_BASE:Clear(TriggerEvent)
 for Name,Object in pairs(self.Set)do
 self:Remove(Name,not TriggerEvent)
+end
+return self
+end
+function SET_BASE:FilterCoalitions(Coalitions,Clear)
+if Clear or(not self.Filter.Coalitions)then
+self.Filter.Coalitions={}
+end
+if type(Coalitions)~="table"then Coalitions={Coalitions}end
+for CoalitionID,Coalition in pairs(Coalitions)do
+local coalition=Coalition
+if type(Coalition)=="number"then
+coalition=self.FilterCoalitionNumbers[Coalition+1]or"unknown"
+end
+self.Filter.Coalitions[coalition]=coalition
 end
 return self
 end
@@ -13481,16 +13508,6 @@ self.Filter.Zones[zonename]=Zone
 end
 return self
 end
-function SET_GROUP:FilterCoalitions(Coalitions,Clear)
-if Clear or(not self.Filter.Coalitions)then
-self.Filter.Coalitions={}
-end
-Coalitions=UTILS.EnsureTable(Coalitions,false)
-for CoalitionID,Coalition in pairs(Coalitions)do
-self.Filter.Coalitions[Coalition]=Coalition
-end
-return self
-end
 function SET_GROUP:FilterCategories(Categories,Clear)
 if Clear or not self.Filter.Categories then
 self.Filter.Categories={}
@@ -13944,16 +13961,6 @@ end
 function SET_UNIT:FindUnit(UnitName)
 local UnitFound=self.Set[UnitName]
 return UnitFound
-end
-function SET_UNIT:FilterCoalitions(Coalitions)
-self.Filter.Coalitions={}
-if type(Coalitions)~="table"then
-Coalitions={Coalitions}
-end
-for CoalitionID,Coalition in pairs(Coalitions)do
-self.Filter.Coalitions[Coalition]=Coalition
-end
-return self
 end
 function SET_UNIT:FilterCategories(Categories)
 if not self.Filter.Categories then
@@ -14599,18 +14606,6 @@ function SET_STATIC:FindStatic(StaticName)
 local StaticFound=self.Set[StaticName]
 return StaticFound
 end
-function SET_STATIC:FilterCoalitions(Coalitions)
-if not self.Filter.Coalitions then
-self.Filter.Coalitions={}
-end
-if type(Coalitions)~="table"then
-Coalitions={Coalitions}
-end
-for CoalitionID,Coalition in pairs(Coalitions)do
-self.Filter.Coalitions[Coalition]=Coalition
-end
-return self
-end
 function SET_STATIC:FilterZones(Zones)
 if not self.Filter.Zones then
 self.Filter.Zones={}
@@ -15037,18 +15032,6 @@ self.Filter.Playernames[playername]=playername
 end
 return self
 end
-function SET_CLIENT:FilterCoalitions(Coalitions)
-if not self.Filter.Coalitions then
-self.Filter.Coalitions={}
-end
-if type(Coalitions)~="table"then
-Coalitions={Coalitions}
-end
-for CoalitionID,Coalition in pairs(Coalitions)do
-self.Filter.Coalitions[Coalition]=Coalition
-end
-return self
-end
 function SET_CLIENT:FilterCategories(Categories)
 if not self.Filter.Categories then
 self.Filter.Categories={}
@@ -15437,18 +15420,6 @@ function SET_PLAYER:FindClient(PlayerName)
 local ClientFound=self.Set[PlayerName]
 return ClientFound
 end
-function SET_PLAYER:FilterCoalitions(Coalitions)
-if not self.Filter.Coalitions then
-self.Filter.Coalitions={}
-end
-if type(Coalitions)~="table"then
-Coalitions={Coalitions}
-end
-for CoalitionID,Coalition in pairs(Coalitions)do
-self.Filter.Coalitions[Coalition]=Coalition
-end
-return self
-end
 function SET_PLAYER:FilterZones(Zones)
 if not self.Filter.Zones then
 self.Filter.Zones={}
@@ -15702,18 +15673,6 @@ function SET_AIRBASE:GetRandomAirbase()
 local RandomAirbase=self:GetRandom()
 return RandomAirbase
 end
-function SET_AIRBASE:FilterCoalitions(Coalitions)
-if not self.Filter.Coalitions then
-self.Filter.Coalitions={}
-end
-if type(Coalitions)~="table"then
-Coalitions={Coalitions}
-end
-for CoalitionID,Coalition in pairs(Coalitions)do
-self.Filter.Coalitions[Coalition]=Coalition
-end
-return self
-end
 function SET_AIRBASE:FilterCategories(Categories)
 if not self.Filter.Categories then
 self.Filter.Categories={}
@@ -15873,18 +15832,6 @@ end
 function SET_CARGO:FindCargo(CargoName)
 local CargoFound=self.Set[CargoName]
 return CargoFound
-end
-function SET_CARGO:FilterCoalitions(Coalitions)
-if not self.Filter.Coalitions then
-self.Filter.Coalitions={}
-end
-if type(Coalitions)~="table"then
-Coalitions={Coalitions}
-end
-for CoalitionID,Coalition in pairs(Coalitions)do
-self.Filter.Coalitions[Coalition]=Coalition
-end
-return self
 end
 function SET_CARGO:FilterTypes(Types)
 if not self.Filter.Types then
@@ -16505,16 +16452,6 @@ self.Filter.Prefixes[Prefix]=Prefix
 end
 return self
 end
-function SET_OPSZONE:FilterCoalitions(Coalitions)
-if not self.Filter.Coalitions then
-self.Filter.Coalitions={}
-end
-Coalitions=UTILS.EnsureTable(Coalitions,false)
-for CoalitionID,Coalition in pairs(Coalitions)do
-self.Filter.Coalitions[Coalition]=Coalition
-end
-return self
-end
 function SET_OPSZONE:FilterOnce()
 for ObjectName,Object in pairs(self.Database)do
 self:Remove(ObjectName,true)
@@ -16758,18 +16695,6 @@ end
 function SET_OPSGROUP:FindNavyGroup(GroupName)
 local GroupFound=self:FindGroup(GroupName)
 return GroupFound
-end
-function SET_OPSGROUP:FilterCoalitions(Coalitions,Clear)
-if Clear or not self.Filter.Coalitions then
-self.Filter.Coalitions={}
-end
-if type(Coalitions)~="table"then
-Coalitions={Coalitions}
-end
-for CoalitionID,Coalition in pairs(Coalitions)do
-self.Filter.Coalitions[Coalition]=Coalition
-end
-return self
 end
 function SET_OPSGROUP:FilterCategories(Categories,Clear)
 if Clear or not self.Filter.Categories then
@@ -17251,18 +17176,6 @@ local MClientFunc=self:_EvalFilterFunctions(DCargo)
 DCargoInclude=DCargoInclude and MClientFunc
 end
 return DCargoInclude
-end
-function SET_DYNAMICCARGO:FilterCoalitions(Coalitions)
-if not self.Filter.Coalitions then
-self.Filter.Coalitions={}
-end
-if type(Coalitions)~="table"then
-Coalitions={Coalitions}
-end
-for CoalitionID,Coalition in pairs(Coalitions)do
-self.Filter.Coalitions[Coalition]=Coalition
-end
-return self
 end
 function SET_DYNAMICCARGO:FilterTypes(Types)
 if not self.Filter.Types then
@@ -33762,8 +33675,9 @@ REMOVED="REMOVED",
 }
 DYNAMICCARGO.AircraftTypes={
 ["CH-47Fbl1"]="CH-47Fbl1",
-["Mi-8MTV2"]="CH-47Fbl1",
-["Mi-8MT"]="CH-47Fbl1",
+["Mi-8MTV2"]="Mi-8MTV2",
+["Mi-8MT"]="Mi-8MT",
+["C-130J-30"]="C-130J-30",
 }
 DYNAMICCARGO.AircraftDimensions={
 ["CH-47Fbl1"]={
@@ -33784,8 +33698,14 @@ DYNAMICCARGO.AircraftDimensions={
 ["length"]=15,
 ["ropelength"]=30,
 },
+["C-130J-30"]={
+["width"]=4,
+["height"]=12,
+["length"]=35,
+["ropelength"]=0,
+},
 }
-DYNAMICCARGO.version="0.0.9"
+DYNAMICCARGO.version="0.1.0"
 function DYNAMICCARGO:Register(CargoName)
 local self=BASE:Inherit(self,POSITIONABLE:New(CargoName))
 self.StaticName=CargoName
@@ -69747,6 +69667,7 @@ CTLD.UnitTypeCapabilities={
 ["Mi-24P"]={type="Mi-24P",crates=true,troops=true,cratelimit=2,trooplimit=8,length=18,cargoweightlimit=700},
 ["Mi-24V"]={type="Mi-24V",crates=true,troops=true,cratelimit=2,trooplimit=8,length=18,cargoweightlimit=700},
 ["Hercules"]={type="Hercules",crates=true,troops=true,cratelimit=7,trooplimit=64,length=25,cargoweightlimit=19000},
+["C-130J-30"]={type="C-130J-30",crates=true,troops=true,cratelimit=7,trooplimit=64,length=35,cargoweightlimit=21500},
 ["UH-60L"]={type="UH-60L",crates=true,troops=true,cratelimit=2,trooplimit=20,length=16,cargoweightlimit=3500},
 ["UH-60L_DAP"]={type="UH-60L_DAP",crates=false,troops=true,cratelimit=0,trooplimit=2,length=16,cargoweightlimit=500},
 ["MH-60R"]={type="MH-60R",crates=true,troops=true,cratelimit=2,trooplimit=20,length=16,cargoweightlimit=3500},
@@ -69763,8 +69684,9 @@ CTLD.FixedWingTypes={
 ["Hercules"]="Hercules",
 ["Bronco"]="Bronco",
 ["Mosquito"]="Mosquito",
+["C-130J-30"]="C-130J-30",
 }
-CTLD.version="1.3.38"
+CTLD.version="1.3.39"
 function CTLD:New(Coalition,Prefixes,Alias)
 local self=BASE:Inherit(self,FSM:New())
 BASE:T({Coalition,Prefixes,Alias})
