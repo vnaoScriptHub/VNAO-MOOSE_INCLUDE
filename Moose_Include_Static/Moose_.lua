@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2025-11-27T09:21:17+01:00-6ed031762b77c57a9d2e45950c5dfbc922258f35 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2025-11-28T12:48:26+01:00-30c693791020eb78336529acc14580f968efe395 ***')
 if not MOOSE_DEVELOPMENT_FOLDER then
 MOOSE_DEVELOPMENT_FOLDER='Scripts'
 end
@@ -403,7 +403,8 @@ Tornado="Tornado",
 Atlas="A400",
 Lancer="B1-B",
 Stratofortress="B-52H",
-Hercules="C-130",
+Herc="C-130",
+Hercules="C-130J-30",
 Super_Hercules="Hercules",
 Globemaster="C-17",
 Greyhound="C-2A",
@@ -3090,6 +3091,18 @@ return true
 end
 if string.find(type_name,"SA342")and(unit:getDrawArgumentValue(34)==1)then
 BASE:T(unit_name.." front door(s) are open or doors removed")
+return true
+end
+if type_name=="C-130J-30"and(unit:getDrawArgumentValue(86)==1)then
+BASE:T(unit_name.." rear doors are open")
+return true
+end
+if type_name=="C-130J-30"and(unit:getDrawArgumentValue(87)==1)then
+BASE:T(unit_name.." Side door(s) are open")
+return true
+end
+if type_name=="C-130J-30"and(unit:getDrawArgumentValue(88)==1)then
+BASE:T(unit_name.." Paratroop door(s) are open")
 return true
 end
 if string.find(type_name,"Hercules")and(unit:getDrawArgumentValue(1215)==1 and unit:getDrawArgumentValue(1216)==1)then
@@ -36002,7 +36015,6 @@ TargetIsScenery=true
 TargetType="Scenery"
 TargetSceneryObject=TargetUNIT
 self:T("***** Target is Scenery and TargetUNIT is SCENERY object!")
-UTILS.PrintTableToLog(TargetSceneryObject)
 end
 TargetUnitCoalition=_SCORINGCoalition[TargetCoalition]
 TargetUnitCategory=_SCORINGCategory[TargetCategory]
@@ -36161,6 +36173,7 @@ local Score=ScoreZoneData.Score
 if TargetUNIT and ScoreZone:IsVec2InZone(TargetUNIT:GetVec2())then
 local PlayerName=Event.IniPlayerName or"Ghost"
 local Player=self.Players[PlayerName]
+if Player then
 Player.Score=Player.Score+Score
 Player.Score=Player.Score+self.ScoreIncrementOnHit
 MESSAGE:NewType(self.DisplayMessagePrefix.."hit in zone '"..ScoreZone:GetName().."'."..
@@ -36169,6 +36182,7 @@ MESSAGE.Type.Information)
 :ToAllIf(self:IfMessagesZone()and self:IfMessagesToAll())
 :ToCoalitionIf(InitCoalition,self:IfMessagesZone()and self:IfMessagesToCoalition())
 self:ScoreCSV(PlayerName,"","HIT_SCORE",1,Score,InitUnitName,InitUnitCoalition,InitUnitCategory,InitUnitType,TargetUnitName,"","Zone",TargetUnitType)
+end
 end
 end
 end
@@ -70022,7 +70036,7 @@ CTLD.FixedWingTypes={
 ["Mosquito"]="Mosquito",
 ["C-130J-30"]="C-130J-30",
 }
-CTLD.version="1.3.39"
+CTLD.version="1.3.40"
 function CTLD:New(Coalition,Prefixes,Alias)
 local self=BASE:Inherit(self,FSM:New())
 BASE:T({Coalition,Prefixes,Alias})
@@ -70374,6 +70388,12 @@ function CTLD:_FindCratesCargoObject(Name)
 self:T(self.lid.." _FindCratesCargoObject")
 local cargo=nil
 for _,_cargo in pairs(self.Cargo_Crates)do
+local cargo=_cargo
+if cargo.Name==Name then
+return cargo
+end
+end
+for _,_cargo in pairs(self.Cargo_Statics)do
 local cargo=_cargo
 if cargo.Name==Name then
 return cargo
@@ -70808,14 +70828,16 @@ self:_GetCrates(Group,Unit,cargoObj,total,false,false,true)
 return self
 end
 function CTLD:_AddCrateQuantityMenus(Group,Unit,parentMenu,cargoObj,stockSummary)
+self:T("_AddCrateQuantityMenus "..cargoObj.Name)
 local needed=cargoObj:GetCratesNeeded()or 1
 local stockEntry=self:_GetCrateStockEntry(cargoObj,stockSummary)
-local stock=nil
+local stock=0
 if stockEntry and type(stockEntry.Stock)=="number"then
 stock=stockEntry.Stock
 else
 stock=cargoObj:GetStock()
 end
+self:T("_AddCrateQuantityMenus "..cargoObj.Name.." Stock: "..tostring(stock))
 local maxQuantity=self.maxCrateMenuQuantity or 1
 local availableSets=nil
 if type(stock)=="number"and stock>=0 then
@@ -70829,6 +70851,7 @@ maxQuantity=availableSets
 end
 end
 maxQuantity=math.floor(maxQuantity)
+self:T("_AddCrateQuantityMenus maxQuantity "..maxQuantity)
 if maxQuantity<1 then
 return self
 end
@@ -70864,6 +70887,7 @@ allowLoad=false
 maxQuantity=1
 end
 end
+self:T("_AddCrateQuantityMenus maxQuantity "..maxQuantity.." allowLoad "..tostring(allowLoad))
 local maxMassSets=nil
 if Unit then
 local maxload=self:_GetMaxLoadableMass(Unit)
@@ -70879,10 +70903,12 @@ maxQuantity=maxMassSets
 end
 end
 end
+self:T("_AddCrateQuantityMenus maxQuantity "..maxQuantity.." allowLoad "..tostring(allowLoad))
 if maxQuantity<1 then
 return self
 end
 if maxQuantity==1 then
+self:T("_AddCrateQuantityMenus maxQuantity "..maxQuantity.." Menu for MaxQ=1 ".."parentMenu.MenuText = "..parentMenu.MenuText)
 MENU_GROUP_COMMAND:New(Group,"Get",parentMenu,self._GetCrateQuantity,self,Group,Unit,cargoObj,1)
 local canLoad=(allowLoad and(not capacitySets or capacitySets>=1)and(not maxMassSets or maxMassSets>=1))
 if canLoad then
@@ -70896,10 +70922,13 @@ msg="Crate limit reached"
 end
 MENU_GROUP_COMMAND:New(Group,msg,parentMenu,self._SendMessage,self,msg,10,false,Group)
 end
+parentMenu:Refresh()
 return self
 end
 for quantity=1,maxQuantity do
+self:T("_AddCrateQuantityMenus maxQuantity "..maxQuantity.." Menu for MaxQ>1")
 local label=tostring(quantity)
+self:T("_AddCrateQuantityMenus Label "..label)
 local qMenu=MENU_GROUP:New(Group,label,parentMenu)
 MENU_GROUP_COMMAND:New(Group,"Get",qMenu,self._GetCrateQuantity,self,Group,Unit,cargoObj,quantity)
 local canLoad=(allowLoad and(not capacitySets or capacitySets>=quantity)and(not maxMassSets or maxMassSets>=quantity))
@@ -72689,7 +72718,12 @@ if cargoObj.DontShowInMenu then
 return
 end
 local needed=cargoObj:GetCratesNeeded()or 1
-local txt=string.format("%d crate%s %s (%dkg)",needed,needed==1 and""or"s",cargoObj.Name,cargoObj.PerCrateMass or 0)
+local txt
+if needed>1 then
+txt=string.format("%d crate%s %s (%dkg)",needed,needed==1 and""or"s",cargoObj.Name,cargoObj.PerCrateMass or 0)
+else
+txt=string.format("%s (%dkg)",cargoObj.Name,cargoObj.PerCrateMass or 0)
+end
 if cargoObj.Location then txt=txt.."[R]"end
 if self.showstockinmenuitems then
 local suffix=self:_FormatCrateStockSuffix(cargoObj,crateStockSummary)
@@ -72699,7 +72733,7 @@ local mSet=MENU_GROUP:New(_group,txt,parentMenu)
 _group.CTLD_CrateMenus[cargoObj.Name]=mSet
 self:_AddCrateQuantityMenus(_group,_unit,mSet,cargoObj,crateStockSummary)
 end
-if self.usesubcats then
+if self.usesubcats==true then
 local subcatmenus={}
 for catName,_ in pairs(self.subcats)do
 subcatmenus[catName]=MENU_GROUP:New(_group,catName,cratesmenu)
@@ -72727,7 +72761,12 @@ end
 for _,cargoObj in pairs(self.Cargo_Crates)do
 if not cargoObj.DontShowInMenu then
 local needed=cargoObj:GetCratesNeeded()or 1
-local txt=string.format("%d crate%s %s (%dkg)",needed,needed==1 and""or"s",cargoObj.Name,cargoObj.PerCrateMass or 0)
+local txt
+if needed>1 then
+txt=string.format("%d crate%s %s (%dkg)",needed,needed==1 and""or"s",cargoObj.Name,cargoObj.PerCrateMass or 0)
+else
+txt=string.format("%s (%dkg)",cargoObj.Name,cargoObj.PerCrateMass or 0)
+end
 if cargoObj.Location then txt=txt.."[R]"end
 local stock=cargoObj:GetStock()
 if stock>=0 and self.showstockinmenuitems then txt=txt.."["..stock.."]"end
@@ -72737,7 +72776,12 @@ end
 for _,cargoObj in pairs(self.Cargo_Statics)do
 if not cargoObj.DontShowInMenu then
 local needed=cargoObj:GetCratesNeeded()or 1
-local txt=string.format("%d crate%s %s (%dkg)",needed,needed==1 and""or"s",cargoObj.Name,cargoObj.PerCrateMass or 0)
+local txt
+if needed>1 then
+txt=string.format("%d crate%s %s (%dkg)",needed,needed==1 and""or"s",cargoObj.Name,cargoObj.PerCrateMass or 0)
+else
+txt=string.format("%s (%dkg)",cargoObj.Name,cargoObj.PerCrateMass or 0)
+end
 if cargoObj.Location then txt=txt.."[R]"end
 local stock=cargoObj:GetStock()
 if stock>=0 and self.showstockinmenuitems then txt=txt.."["..stock.."]"end
@@ -72748,7 +72792,12 @@ else
 for _,cargoObj in pairs(self.Cargo_Crates)do
 if not cargoObj.DontShowInMenu then
 local needed=cargoObj:GetCratesNeeded()or 1
-local txt=string.format("%d crate%s %s (%dkg)",needed,needed==1 and""or"s",cargoObj.Name,cargoObj.PerCrateMass or 0)
+local txt
+if needed>1 then
+txt=string.format("%d crate%s %s (%dkg)",needed,needed==1 and""or"s",cargoObj.Name,cargoObj.PerCrateMass or 0)
+else
+txt=string.format("%s (%dkg)",cargoObj.Name,cargoObj.PerCrateMass or 0)
+end
 if cargoObj.Location then txt=txt.."[R]"end
 local stock=cargoObj:GetStock()
 if stock>=0 and self.showstockinmenuitems then txt=txt.."["..stock.."]"end
@@ -72758,7 +72807,12 @@ end
 for _,cargoObj in pairs(self.Cargo_Statics)do
 if not cargoObj.DontShowInMenu then
 local needed=cargoObj:GetCratesNeeded()or 1
-local txt=string.format("%d crate%s %s (%dkg)",needed,needed==1 and""or"s",cargoObj.Name,cargoObj.PerCrateMass or 0)
+local txt
+if needed>1 then
+txt=string.format("%d crate%s %s (%dkg)",needed,needed==1 and""or"s",cargoObj.Name,cargoObj.PerCrateMass or 0)
+else
+txt=string.format("%s (%dkg)",cargoObj.Name,cargoObj.PerCrateMass or 0)
+end
 if cargoObj.Location then txt=txt.."[R]"end
 local stock=cargoObj:GetStock()
 if stock>=0 and self.showstockinmenuitems then txt=txt.."["..stock.."]"end
