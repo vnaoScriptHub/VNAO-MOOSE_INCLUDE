@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2025-12-02T10:36:01+01:00-e1b5c7f9c21a19916fc9d26920f562e38a31f5a2 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2025-12-06T11:43:19+01:00-04f7bb7cc733c84724f4afe1775cc56dcfe03a95 ***')
 if not MOOSE_DEVELOPMENT_FOLDER then
 MOOSE_DEVELOPMENT_FOLDER='Scripts'
 end
@@ -13088,7 +13088,6 @@ List={},
 Index={},
 Database=nil,
 CallScheduler=nil,
-Filter={},
 FilterCoalitionNumbers={
 [coalition.side.RED+1]="red",
 [coalition.side.BLUE+1]="blue",
@@ -32301,7 +32300,7 @@ self.Vec3=SceneryZone:GetVec3()
 self.Vec2=SceneryZone:GetVec2()
 self.Vector=(self.Vec3 and VECTOR)and VECTOR:NewFromVec(self.Vec3)or nil
 end
-if SceneryObject then
+if SceneryObject and SceneryObject.getPoint then
 local vec3=SceneryObject:getPoint()
 self.Vec3={x=vec3.x,y=vec3.y,z=vec3.z}
 self.Vec2={x=vec3.x,y=vec3.z}
@@ -57061,6 +57060,7 @@ self:T({EventData})
 self:T(self.lid.." HandleEventShot")
 local ShootingWeapon=EventData.Weapon
 local ShootingWeaponName=EventData.WeaponName
+if not EventData.IniGroup then return self end
 local weaponcoalition=EventData.IniGroup:GetCoalition()
 if self:_CheckCoalition(weaponcoalition)then
 local IsDetected=self:_ShotIsDetected()
@@ -74416,10 +74416,10 @@ local cargo=_cgo
 local type=cargo.CargoType
 local gname=cargo.Name
 local gcargo=self:_FindCratesCargoObject(gname)or self:_FindTroopsCargoObject(gname)
-self:T("Looking at "..gname.." in the helo - type = "..type)
+self:T("Looking at "..gname.." in the helo - type = "..tostring(type))
 if(type==CTLD_CARGO.Enum.TROOPS or type==CTLD_CARGO.Enum.ENGINEERS or type==CTLD_CARGO.Enum.VEHICLE or type==CTLD_CARGO.Enum.FOB)then
 if gcargo and gcargo:GetStock0()>0 then
-self:T("Adding "..gname.." in the helo - type = "..type)
+self:T("Adding "..gname.." in the helo - type = "..tostring(type))
 if(type==CTLD_CARGO.Enum.TROOPS or type==CTLD_CARGO.Enum.ENGINEERS)then
 Troopstable[gname].Inhelo=Troopstable[gname].Inhelo+1
 end
