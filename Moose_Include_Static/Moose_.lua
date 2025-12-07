@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2025-12-06T11:43:19+01:00-04f7bb7cc733c84724f4afe1775cc56dcfe03a95 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2025-12-07T13:39:23+01:00-3327c3b24da81daa0a3bbdafaac74a05883ff7b2 ***')
 if not MOOSE_DEVELOPMENT_FOLDER then
 MOOSE_DEVELOPMENT_FOLDER='Scripts'
 end
@@ -28719,7 +28719,7 @@ function GROUP:GetTaskMission()
 return UTILS.DeepCopy(_DATABASE.Templates.Groups[self.GroupName].Template)
 end
 function GROUP:GetTaskRoute()
-if _DATABASE.Templates.Groups[self.GroupName].Template and _DATABASE.Templates.Groups[self.GroupName].Template.route and _DATABASE.Templates.Groups[self.GroupName].Template.route.points then
+if _DATABASE.Templates.Groups[self.GroupName]and _DATABASE.Templates.Groups[self.GroupName].Template and _DATABASE.Templates.Groups[self.GroupName].Template.route and _DATABASE.Templates.Groups[self.GroupName].Template.route.points then
 return UTILS.DeepCopy(_DATABASE.Templates.Groups[self.GroupName].Template.route.points)
 else
 return{}
@@ -28733,7 +28733,7 @@ GroupName=GroupName:sub(1,-2)
 else
 GroupName=self:GetName()
 end
-local Template=_DATABASE.Templates.Groups[GroupName].Template
+local Template=_DATABASE.Templates.Groups[GroupName]and _DATABASE.Templates.Groups[GroupName].Template or nil
 if Template then
 if not Begin then
 Begin=0
@@ -28755,7 +28755,7 @@ end
 end
 return Points
 else
-error("Template not found for Group : "..GroupName)
+BASE:E("Template not found for Group : "..GroupName)
 end
 return nil
 end
@@ -70060,7 +70060,7 @@ CTLD.FixedWingTypes={
 ["Mosquito"]="Mosquito",
 ["C-130J-30"]="C-130J-30",
 }
-CTLD.version="1.3.40"
+CTLD.version="1.3.41"
 function CTLD:New(Coalition,Prefixes,Alias)
 local self=BASE:Inherit(self,FSM:New())
 BASE:T({Coalition,Prefixes,Alias})
@@ -70668,7 +70668,7 @@ end
 function CTLD:_ExtractTroops(Group,Unit)
 self:T(self.lid.." _ExtractTroops")
 local grounded=not self:IsUnitInAir(Unit)
-local hoverload=self:CanHoverLoad(Unit)
+local hoverload=self:IsCorrectHover(Unit)
 local hassecondaries=false
 if not grounded and not hoverload then
 self:_SendMessage("You need to land or hover in position to load!",10,false,Group)
@@ -74195,6 +74195,7 @@ return self
 end
 function CTLD:IsCorrectHover(Unit)
 self:T(self.lid.." IsCorrectHover")
+if self:IsFixedWing(Unit)then return false end
 local outcome=false
 if self:IsUnitInAir(Unit)then
 local uspeed=Unit:GetVelocityMPS()
