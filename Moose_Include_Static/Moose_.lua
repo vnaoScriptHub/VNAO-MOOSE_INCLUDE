@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2026-02-06T16:28:47+01:00-ee610f5cc7c66424482e15504e951c0895482904 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2026-02-06T17:29:44+01:00-42731b5778a78397fc66d7153db092dd37f79cc9 ***')
 if not MOOSE_DEVELOPMENT_FOLDER then
 MOOSE_DEVELOPMENT_FOLDER='Scripts'
 end
@@ -8319,6 +8319,24 @@ return self
 end
 end
 do
+function EVENT:CreateEventNewCargo(Cargo)
+self:F({Cargo})
+local Event={
+id=EVENTS.NewCargo,
+time=timer.getTime(),
+cargo=Cargo,
+}
+world.onEvent(Event)
+end
+function EVENT:CreateEventDeleteCargo(Cargo)
+self:F({Cargo})
+local Event={
+id=EVENTS.DeleteCargo,
+time=timer.getTime(),
+cargo=Cargo,
+}
+world.onEvent(Event)
+end
 function EVENT:CreateEventNewZone(Zone)
 self:F({Zone})
 local Event={
