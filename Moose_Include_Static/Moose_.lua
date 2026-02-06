@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2026-02-06T14:37:40+01:00-462b54596801eaec8e4bc2049c5fc4519e77a327 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2026-02-06T16:28:47+01:00-ee610f5cc7c66424482e15504e951c0895482904 ***')
 if not MOOSE_DEVELOPMENT_FOLDER then
 MOOSE_DEVELOPMENT_FOLDER='Scripts'
 end
@@ -27368,6 +27368,30 @@ if DCSControllable then
 local Controller=self:_GetController()
 if self:IsAir()then
 Controller:setOption(AI.Option.Air.id.PREFER_VERTICAL,true)
+end
+return self
+end
+return nil
+end
+function CONTROLLABLE:OptionAllowFormationSideSwap()
+self:F2({self.ControllableName})
+local DCSControllable=self:GetDCSObject()
+if DCSControllable then
+local Controller=self:_GetController()
+if self:IsAir()then
+Controller:setOption(AI.Option.Air.id.ALLOW_FORMATION_SIDE_SWAP,true)
+end
+return self
+end
+return nil
+end
+function CONTROLLABLE:OptionAIRunwayLineUp()
+self:F2({self.ControllableName})
+local DCSControllable=self:GetDCSObject()
+if DCSControllable then
+local Controller=self:_GetController()
+if self:IsAir()then
+Controller:setOption(37,true)
 end
 return self
 end
