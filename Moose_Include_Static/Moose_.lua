@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2026-02-06T14:37:40+01:00-462b54596801eaec8e4bc2049c5fc4519e77a327 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2026-02-07T09:10:23+01:00-9df39f9646789067c0b7aab827641529998d28e4 ***')
 if not MOOSE_DEVELOPMENT_FOLDER then
 MOOSE_DEVELOPMENT_FOLDER='Scripts'
 end
@@ -8319,6 +8319,24 @@ return self
 end
 end
 do
+function EVENT:CreateEventNewCargo(Cargo)
+self:F({Cargo})
+local Event={
+id=EVENTS.NewCargo,
+time=timer.getTime(),
+cargo=Cargo,
+}
+world.onEvent(Event)
+end
+function EVENT:CreateEventDeleteCargo(Cargo)
+self:F({Cargo})
+local Event={
+id=EVENTS.DeleteCargo,
+time=timer.getTime(),
+cargo=Cargo,
+}
+world.onEvent(Event)
+end
 function EVENT:CreateEventNewZone(Zone)
 self:F({Zone})
 local Event={
@@ -27373,6 +27391,30 @@ return self
 end
 return nil
 end
+function CONTROLLABLE:OptionAllowFormationSideSwap()
+self:F2({self.ControllableName})
+local DCSControllable=self:GetDCSObject()
+if DCSControllable then
+local Controller=self:_GetController()
+if self:IsAir()then
+Controller:setOption(AI.Option.Air.id.ALLOW_FORMATION_SIDE_SWAP,true)
+end
+return self
+end
+return nil
+end
+function CONTROLLABLE:OptionAIRunwayLineUp()
+self:F2({self.ControllableName})
+local DCSControllable=self:GetDCSObject()
+if DCSControllable then
+local Controller=self:_GetController()
+if self:IsAir()then
+Controller:setOption(37,true)
+end
+return self
+end
+return nil
+end
 function CONTROLLABLE:OptionROTEvadeFirePossible()
 self:F2({self.ControllableName})
 local DCSControllable=self:GetDCSObject()
@@ -43942,6 +43984,13 @@ local Pdestination
 if landing==RAT.wp.air then
 local vec2=destination:GetRandomVec2()
 Pdestination=COORDINATE:NewFromVec2(vec2)
+elseif destination:IsShip()then
+local _ship=UNIT:FindByName(destination:GetName())
+local _shipHeading=_ship:GetHeading()
+Pdestination=destination:GetCoordinate()
+local _transitTime=Pdeparture:Get2DDistance(Pdestination)/VxCruise
+Pdestination.x=Pdestination.x+(_ship:GetGroundSpeed()*math.cos(math.rad(_shipHeading))*_transitTime)
+Pdestination.z=Pdestination.z+(_ship:GetGroundSpeed()*math.sin(math.rad(_shipHeading))*_transitTime)
 else
 Pdestination=destination:GetCoordinate()
 end
