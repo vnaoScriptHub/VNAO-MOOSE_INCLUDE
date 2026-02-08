@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2026-02-08T12:36:26+01:00-3003d069fe2e51e42c1a8dbf189e0fd52b118a06 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2026-02-08T14:16:44+01:00-e52c1199f9d8f4a9d089ab831f60e95e4bd8fda6 ***')
 if not MOOSE_DEVELOPMENT_FOLDER then
 MOOSE_DEVELOPMENT_FOLDER='Scripts'
 end
@@ -26269,7 +26269,7 @@ if arg and arg.n>0 then
 local ArgumentKey='_'..tostring(arg):match("table: (.*)")
 self:SetState(self,ArgumentKey,arg)
 DCSScript[#DCSScript+1]="local Arguments = MissionControllable:GetState( MissionControllable, '"..ArgumentKey.."' ) "
-DCSScript[#DCSScript+1]=FunctionString.."( MissionControllable, ((type(Arguments)=='table') and unpack(Arguments) or nil))"
+DCSScript[#DCSScript+1]=FunctionString.."( MissionControllable, unpack( Arguments ) )"
 else
 DCSScript[#DCSScript+1]=FunctionString.."( MissionControllable )"
 end
