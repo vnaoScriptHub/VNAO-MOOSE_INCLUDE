@@ -1,4 +1,4 @@
-env.info('*** MOOSE GITHUB Commit Hash ID: 2026-02-10T06:16:51+01:00-8f910f83af7aaccd78654515e221b8e375197753 ***')
+env.info('*** MOOSE GITHUB Commit Hash ID: 2026-02-10T15:34:26+01:00-758f2a71038fffcd33f744911007f023b5d3db61 ***')
 if not MOOSE_DEVELOPMENT_FOLDER then
 MOOSE_DEVELOPMENT_FOLDER='Scripts'
 end
@@ -5525,7 +5525,7 @@ return welzlHelper(pts,#pts,{})
 end
 function UTILS.CalculateInterceptBearing(A1,V1,A2,V2_speed)
 local function berechne_bearing(richtung)
-local bearing=math.deg(math.atan2(richtung.x,richtung.y))
+local bearing=math.deg(math.atan2(richtung.x,richtung.z))
 if bearing<0 then
 bearing=bearing+360
 end
